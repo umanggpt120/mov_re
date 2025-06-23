@@ -32,7 +32,7 @@ def predictive_system(input_data):
 
     # Transform features
     loaded_model = TfidfVectorizer()
-    feature_vector = loaded_model.transform(combined_features)
+    feature_vector = loaded_model.fit_transform(combined_features)
 
     # Compute similarity
     similarity = cosine_similarity(feature_vector)
