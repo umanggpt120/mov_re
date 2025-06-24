@@ -42,7 +42,9 @@ def predictive_system(input_data):
 
     list_of_titles = movie_data['title'].tolist()
     close_match = difflib.get_close_matches(movie_name, list_of_titles)
-
+    
+    recommendations = [] 
+    
     if close_match:
         close = close_match[0]
         index = movie_data[movie_data.title == close].index[0]
@@ -53,7 +55,7 @@ def predictive_system(input_data):
         print("Movies suggested for you:\n")
         
         
-        recommendations = [] 
+        
         i = 1
 
         for movie in sorted_movies:
@@ -68,7 +70,10 @@ def predictive_system(input_data):
         
         return recommendation_array
         
-        
+    else :
+        recommendations = ["No match found. Try again."]
+        recommendation_array = np.array(recommendations)
+        return recommendation_array
 
 def main():
     
