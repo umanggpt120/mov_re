@@ -14,7 +14,7 @@ def predictive_system(input_data):
     import pickle
 
 
-    movie_data = pd.read_csv('movies.csv')  # Adjust path if needed
+    movie_data = pd.read_csv('movies.csv')  
 
     # Preprocessing
     selected_features = ['genres', 'keywords', 'tagline', 'cast', 'director']
