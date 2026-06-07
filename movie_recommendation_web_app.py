@@ -1,92 +1,81 @@
-
-import numpy as np
-import pickle
 import streamlit as st
+import pickle
+import difflib
+import numpy as np
+
+@st.cache_resource
+def load_files():
+
+    with open("movies_data.pkl", "rb") as f:
+        movie_data = pickle.load(f)
+
+    with open("similarity.pkl", "rb") as f:
+        similarity = pickle.load(f)
+
+    return movie_data, similarity
 
 
-def predictive_system(input_data):
-    
-    import numpy as np
-    import pandas as pd
-    import difflib
-    from sklearn.feature_extraction.text import TfidfVectorizer
-    from sklearn.metrics.pairwise import cosine_similarity
-    import pickle
+movie_data, similarity = load_files()
 
 
-    movie_data = pd.read_csv('movies.csv')  
-
-    # Preprocessing
-    selected_features = ['genres', 'keywords', 'tagline', 'cast', 'director']
-    for feature in selected_features:
-        movie_data[feature] = movie_data[feature].fillna('')
-
-    combined_features = movie_data['genres'] + ' ' + movie_data['keywords'] + ' ' + \
-                        movie_data['tagline'] + ' ' + movie_data['cast'] + ' ' + movie_data['director']
-
-    # Transform features
-    loaded_model = TfidfVectorizer()
-    feature_vector = loaded_model.fit_transform(combined_features)
-
-    # Compute similarity
-    similarity = cosine_similarity(feature_vector)
-
-    # Get user input
-    movie_name = input_data
+def predictive_system(movie_name):
 
     list_of_titles = movie_data['title'].tolist()
-    close_match = difflib.get_close_matches(movie_name, list_of_titles)
-    
-    recommendations = [] 
-    
-    if close_match:
-        close = close_match[0]
-        index = movie_data[movie_data.title == close].index[0]
 
-        similarity_score = list(enumerate(similarity[index]))
-        sorted_movies = sorted(similarity_score, key=lambda x: x[1], reverse=True)
+    close_match = difflib.get_close_matches(
+        movie_name,
+        list_of_titles
+    )
 
-        print("Movies suggested for you:\n")
-        
-        
-        
-        i = 1
+    if not close_match:
+        return np.array(["No match found. Try again."])
 
-        for movie in sorted_movies:
-            idx = movie[0]
-            title = movie_data.iloc[idx]['title']
-            if i <= 30:
-                recommendations.append(f"{i}. {title}")
-                i += 1
+    close = close_match[0]
 
-        # Convert list to NumPy array
-        recommendation_array = np.array(recommendations)
-        
-        return recommendation_array
-        
-    else :
-        recommendations = ["No match found. Try again."]
-        recommendation_array = np.array(recommendations)
-        return recommendation_array
+    index = movie_data[
+        movie_data.title == close
+    ].index[0]
+
+    similarity_score = list(
+        enumerate(similarity[index])
+    )
+
+    sorted_movies = sorted(
+        similarity_score,
+        key=lambda x: x[1],
+        reverse=True
+    )
+
+    recommendations = []
+
+    for i, movie in enumerate(sorted_movies[:30], start=1):
+
+        movie_index = movie[0]
+
+        title = movie_data.iloc[movie_index]['title']
+
+        recommendations.append(
+            f"{i}. {title}"
+        )
+
+    return np.array(recommendations)
+
 
 def main():
-    
-    st.title('Movie recommendation system')
-    
-    input_data = st.text_input('Enter your favourite movie name: ')
-    
-    result = []
-    
-    if st.button('Movies Recommended are '):
-        result = predictive_system(input_data)
-        
-    for movie in result:
-            st.success(movie)
-    
-    
 
-if __name__=='__main__':
+    st.title("Movie Recommendation System")
+
+    movie_name = st.text_input(
+        "Enter your favourite movie."
+    )
+
+    if st.button("Recommend Movies"):
+
+        result = predictive_system(movie_name)
+
+        for movie in result:
+            st.success(movie)
+
+
+if __name__ == "__main__":
     main()
-    
-    
-    
